@@ -1,0 +1,7 @@
+name             'atomic'
+maintainer       'Chef Partner Engineering'
+maintainer_email 'partnereng@chef.io'
+license          'Apache 2.0'
+description      'Installs/Configures atomic'
+long_description 'Installs/Configures atomic'
+version          '0.1.0'
