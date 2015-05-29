@@ -10,28 +10,42 @@ class Chef
       end
 
       action :create do
-        template "#{node['atomic']['work_dir']}/#{new_resource.instance_id}/meta-data" do
+        base_image = ::File.join(node['atomic']['work_dir'], node['atomic']['image_version']).sub('qcow2.xz', 'qcow2')
+        init_iso = "#{node['atomic']['work_dir']}/#{new_resource.instance_id}/init.iso"
+        resource_dir = "#{node['atomic']['work_dir']}/#{new_resource.instance_id}"
+        meta_data_file = "#{resource_dir}/meta-data"
+        user_data_file = "#{resource_dir}/user-data"
+
+        directory resource_dir do
+          owner 'root'
+          group 'root'
+          mode '0755'
+          action :create
+        end
+
+        template meta_data_file do
+          cookbook 'atomic'
           source 'meta-data.erb'
           variables atomic: node['atomic'].to_h
-          notifies :run, "bash[geniso-#{new_resource.instance_id}]"
+          notifies :run, "execute[generate #{init_iso}]"
           action :create
         end
 
-        template "#{node['atomic']['work_dir']}/#{new_resource.instance_id}/user-data" do
+        template user_data_file do
+          cookbook 'atomic'
           source 'user-data.erb'
           variables atomic: node['atomic'].to_h
-          notifies :run, "bash[geniso-#{new_resource.instance_id}]"
+          notifies :run, "execute[generate #{init_iso}]"
           action :create
         end
 
-        execute "geniso-#{new_resource.instance_id}" do
-          command ''
-          action :nothing
+        execute "generate #{init_iso}" do
+          command "genisoimage -output #{init_iso} -volid cidata -joliet -rock #{meta_data_file} #{user_data_file}"
+          action :run
         end
 
-        execute 'inject the atomic iso' do
-          command "virt-install --connect qemu:///system --ram 4024 -n rhel_64 --os-type=linux --os-variant=rhel7 --disk path=#{iso_file},device=disk,format=qcow2 --vcpus=2 --import"
-          creates '/tmp/something'
+        execute "launch #{new_resource.instance_id}" do
+          command "virt-install --connect qemu:///system --ram #{new_resource.ram} -n #{new_resource.instance_id} --os-type=linux --os-variant=rhel7 --disk path=#{base_image},device=disk,format=qcow2 --vcpus=#{new_resource.cpus} --disk path=#{init_iso} --import"
           action :run
         end
       end
