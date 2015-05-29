@@ -11,7 +11,7 @@ class Chef
       attribute :hostname, kind_of: String, required: true
       attribute :password, kind_of: String, required: true
       attribute :ssh_keys, kind_of: Array, default: []
-      attribute :master_instance_id, kind_of: String, required: true
+      attribute :master_id, kind_of: String, required: true
     end
   end
 end

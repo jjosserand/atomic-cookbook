@@ -1,4 +1,5 @@
-compressed_iso_file = "#{node['atomic']['iso_base_uri']}/#{node['atomic']['iso_version']}"
+remote_iso = "#{node['atomic']['iso_base_uri']}/#{node['atomic']['iso_version']}"
+compressed_iso_file = "#{node['atomic']['work_dir']}/#{node['atomic']['iso_version']}"
 iso_file = compressed_iso_file.sub('qcow2.xz', 'qcow2')
 
 %w(genisoimage libvirt.x86_64 libguestfs-tools qemu-kvm libvirt virt-install bridge-utils).each do |pkg|
@@ -15,7 +16,7 @@ directory node['atomic']['work_dir'] do
 end
 
 remote_file compressed_iso_file do
-  source "#{node['atomic']['iso_base_uri']}/#{node['atomic']['iso_version']}"
+  source remote_iso
 end
 
 execute 'uncompress the qcow2 iso' do

@@ -2,7 +2,7 @@ require 'chef/provider/lwrp_base'
 
 class Chef
   class Provider
-    class MysqlConfig < Chef::Provider::LWRPBase
+    class AtomicMaster < Chef::Provider::LWRPBase
       use_inline_resources
 
       def whyrun_supported?
@@ -20,6 +20,7 @@ class Chef
         template "#{node['atomic']['work_dir']}/#{new_resource.instance_id}/user-data" do
           source 'user-data.erb'
           variables atomic: node['atomic'].to_h
+          notifies :run, "bash[geniso-#{new_resource.instance_id}]"
           action :create
         end
 
