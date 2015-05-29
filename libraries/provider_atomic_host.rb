@@ -2,7 +2,7 @@ require 'chef/provider/lwrp_base'
 
 class Chef
   class Provider
-    class AtomicMaster < Chef::Provider::LWRPBase
+    class AtomicHost < Chef::Provider::LWRPBase
       use_inline_resources
 
       def whyrun_supported?
@@ -26,7 +26,10 @@ class Chef
         template meta_data_file do
           cookbook 'atomic'
           source 'meta-data.erb'
-          variables atomic: node['atomic'].to_h
+          variables(
+            instance_id: new_resource.instance_id,
+            hostname: new_resource.instance_id
+          )
           notifies :run, "execute[generate #{init_iso}]"
           action :create
         end
@@ -34,7 +37,7 @@ class Chef
         template user_data_file do
           cookbook 'atomic'
           source 'user-data.erb'
-          variables atomic: node['atomic'].to_h
+          variables atomic: node['atomic'].to_h.merge('role' => new_resource.role)
           notifies :run, "execute[generate #{init_iso}]"
           action :create
         end
@@ -44,9 +47,10 @@ class Chef
           action :run
         end
 
-        execute "launch #{new_resource.instance_id}" do
+        execute "virt-install #{new_resource.instance_id}" do
           command "virt-install --connect qemu:///system --ram #{new_resource.ram} -n #{new_resource.instance_id} --os-type=linux --os-variant=rhel7 --disk path=#{base_image},device=disk,format=qcow2 --vcpus=#{new_resource.cpus} --disk path=#{init_iso} --import"
           action :run
+          not_if "virsh list | grep #{new_resource.instance_id}"
         end
       end
     end

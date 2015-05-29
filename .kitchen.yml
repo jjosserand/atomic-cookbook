@@ -15,7 +15,19 @@ platforms:
   - name: chef/centos-7.1
 
 suites:
-  - name: host
+  - name: master
     run_list:
       - recipe[test-atomic::default]
     attributes:
+      test-atomic:
+        role: 'master'
+        hostname: 'atomic-master'
+        password: 'atomic-master-password'
+  - name: minion
+    run_list:
+      - recipe[test-atomic::default]
+    attributes:
+      test-atomic:
+        role: 'minion'
+        hostname: 'atomic-minion'
+        password: 'atomic-minion-password'

@@ -1,16 +1,9 @@
 include_recipe 'atomic'
 
-atomic_master 'atomic-master' do
-  hostname 'atomic-master'
-  password 'p@$$w0rd'
+atomic_host node['test-atomic']['instance_id'] do
+  role node['test-atomic']['role']
+  master_id node['test-atomic']['master_id']
+  hostname node['test-atomic']['instance_id']
+  password node['test-atomic']['password']
   action :create
-end
-
-1.upto(3) do |id|
-  atomic_minion "atomic-minion-#{id}" do
-    hostname "atomic-minion-#{id}"
-    password 'p@$$w0rd'
-    master_id 'atomic-master'
-    action :create
-  end
 end

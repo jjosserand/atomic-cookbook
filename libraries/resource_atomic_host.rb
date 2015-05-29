@@ -2,8 +2,8 @@ require 'chef/resource/lwrp_base'
 
 class Chef
   class Resource
-    class AtomicMaster < Chef::Resource::LWRPBase
-      self.resource_name = :atomic_master
+    class AtomicHost < Chef::Resource::LWRPBase
+      self.resource_name = :atomic_host
       actions :create
       default_action :create
 
@@ -13,6 +13,8 @@ class Chef
       attribute :ssh_keys, kind_of: Array, default: []
       attribute :ram, kind_of: [Integer, String], default: 2048
       attribute :cpus, kind_of: [Integer, String], default: 2
+      attribute :role, kind_of: [String, Symbol], default: 'master'
+      attribute :master_id, kind_of: String, default: nil
     end
   end
 end
