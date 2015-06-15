@@ -1,6 +1,7 @@
 ---
 driver:
   name: vagrant
+  provider: vmware_fusion
   network:
     - ["forwarded_port", {guest: 80, host: 8080, auto_correct: true}]
     - ["forwarded_port", {guest: 443, host: 8443}]
@@ -15,19 +16,7 @@ platforms:
   - name: chef/centos-7.1
 
 suites:
-  - name: master
+  - name: default
     run_list:
       - recipe[test-atomic::default]
     attributes:
-      test-atomic:
-        role: 'master'
-        hostname: 'atomic-master'
-        password: 'atomic-master-password'
-  - name: minion
-    run_list:
-      - recipe[test-atomic::default]
-    attributes:
-      test-atomic:
-        role: 'minion'
-        hostname: 'atomic-minion'
-        password: 'atomic-minion-password'

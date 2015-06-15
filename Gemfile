@@ -16,3 +16,8 @@ gem 'berkshelf'
 
 gem "test-kitchen"
 gem "kitchen-vagrant"
+
+group :development do
+  gem 'pry'
+end
+
