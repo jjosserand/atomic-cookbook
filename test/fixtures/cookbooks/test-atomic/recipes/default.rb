@@ -5,3 +5,9 @@ atomic_host 'master' do
   role :master
   action :create
 end
+
+atomic_host 'node1' do
+  ip_address '192.168.122.51'
+  role :node
+  action :create
+end

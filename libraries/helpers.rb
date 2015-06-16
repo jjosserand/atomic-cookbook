@@ -49,14 +49,14 @@ module AtomicHelpers
   end
 
   def file_diff_on_atomic_host?(ip_address, file)
-    if ! file_exists_on_atomic_host?(ip_address, "stat #{file}")
+    if ! file_exists_on_atomic_host?(ip_address, file)
       return true
     end
 
     source_file_md5 = Digest::MD5.file(atomic_file_local_path(ip_address, file))
 
-    dest_file_cmd = run_cmd_on_atomic_host(ip_address, "md5sum #{file} | awk '{print $1}'")
-    dest_file_md5 = dest_file_cmd.stdout.strip
+    dest_file_cmd = run_cmd_on_atomic_host(ip_address, "md5sum #{file}")
+    dest_file_md5 = dest_file_cmd.stdout.split(' ')[0]
 
     source_file_md5.to_s != dest_file_md5
   end

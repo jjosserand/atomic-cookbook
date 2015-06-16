@@ -103,14 +103,17 @@ class Chef
 
         ruby_block "#{ip_address} verify ssh" do
           block do
-            cmd = Mixlib::ShellOut.new("ssh -i #{atomic_ssh_key} -o ConnectTimeout=2 -o PasswordAuthentication=no root@#{ip_address} uptime")
+            Chef::Log.info("#{ip_address} created, waiting for cloud-init to run and SSH to come up - please be patient...")
             succeeded = false
-            30.times do
+            60.times do |x|
+              Chef::Log.info("Testing SSH on #{ip_address}, attempt #{x+1}")
+              cmd = Mixlib::ShellOut.new("ssh -i #{atomic_ssh_key} -o ConnectTimeout=2 -o PasswordAuthentication=no root@#{ip_address} uptime")
               cmd.run_command
               if ! cmd.error?
                 succeeded = true
                 break
               end
+              Chef::Log.info("#{ip_address} is not yet ready... waiting and retrying...")
               sleep 2
             end
 
