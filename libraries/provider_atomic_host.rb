@@ -241,6 +241,8 @@ class Chef
         end # role == :master
 
         if role == :node
+          raise RuntimeError, "required attribute 'master_ip' missing for #{new_resource.name}" if new_resource.master_ip.nil?
+
           atomic_file "#{ip_address} docker sysconfig" do
             ip_address ip_address
             remote_file '/etc/sysconfig/docker'
