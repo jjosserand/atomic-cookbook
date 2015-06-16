@@ -1,2 +1,4 @@
+<% if ! @node_ip_addresses.empty? %>
 KUBELET_ADDRESSES="--machines=<%= @node_ip_addresses.join(',') %>"
+<% end %>
 KUBE_CONTROLLER_MANAGER_ARGS=""
