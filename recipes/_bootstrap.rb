@@ -42,6 +42,13 @@ execute 'generate atomic ssh key' do
   action :run
 end
 
+directory '/root/.ssh' do
+  owner 'root'
+  group 'root'
+  mode '0700'
+  action :create
+end
+
 template '/root/.ssh/config' do
   source 'root-ssh-config.erb'
   owner 'root'
