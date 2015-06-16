@@ -3,7 +3,7 @@ compressed_image_file = "#{node['atomic']['work_dir']}/#{node['atomic']['image_v
 image_file = compressed_image_file.sub('qcow2.xz', 'qcow2')
 
 %w(genisoimage libvirt.x86_64 libguestfs-tools qemu-kvm libvirt virt-install
-  bridge-utils vnc xauth virt-manager).each do |pkg|
+  bridge-utils vnc xauth virt-manager kubernetes).each do |pkg|
   package pkg do
     action :install
   end

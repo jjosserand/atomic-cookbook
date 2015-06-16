@@ -17,6 +17,7 @@ class Chef
         template local_file do
           cookbook 'atomic'
           source new_resource.template_name
+          variables new_resource.variables
           action :create
         end
 

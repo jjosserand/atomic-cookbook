@@ -38,6 +38,13 @@ class Chef
           run_cmd_on_atomic_host!(new_resource.ip_address, command)
         end
       end
+
+      action :restart do
+        command = "systemctl restart #{new_resource.unit_name}"
+        converge_by(%Q{run "#{command}" on #{new_resource.ip_address} via ssh}) do
+          run_cmd_on_atomic_host!(new_resource.ip_address, command)
+        end
+      end
     end
   end
 end

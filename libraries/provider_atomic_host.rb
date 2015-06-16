@@ -177,6 +177,43 @@ class Chef
             unit_name 'etcd'
             action [ :enable, :start ]
           end
+
+          atomic_file "#{ip_address} kubernetes config" do
+            ip_address ip_address
+            remote_file '/etc/kubernetes/config'
+            template_name 'kubernetes-config.erb'
+            variables Hash(master_ip_address: ip_address)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} kube-apiserver]"
+            notifies :restart, "atomic_service[#{ip_address} kube-controller-manager]"
+            notifies :restart, "atomic_service[#{ip_address} kube-scheduler]"
+          end
+
+          atomic_file "#{ip_address} kubernetes apiserver config" do
+            ip_address ip_address
+            remote_file '/etc/kubernetes/apiserver'
+            template_name 'kubernetes-apiserver-config.erb'
+            variables Hash(master_ip_address: ip_address)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} kube-apiserver]"
+          end
+
+          atomic_file "#{ip_address} kubernetes controller-manager config" do
+            ip_address ip_address
+            remote_file '/etc/kubernetes/controller-manager'
+            template_name 'kubernetes-controller-manager-config.erb'
+            variables Hash(node_ip_addresses: new_resource.node_ips)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} kube-controller-manager]"
+          end
+
+          %w(kube-apiserver kube-controller-manager kube-scheduler).each do |svc|
+            atomic_service "#{ip_address} #{svc}" do
+              ip_address ip_address
+              unit_name svc
+              action [ :enable, :start ]
+            end
+          end
         end
       end
     end
