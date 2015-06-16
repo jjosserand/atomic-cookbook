@@ -14,12 +14,12 @@ atomic_host master[:name] do
   action :create
 end
 
-## node hosts
-#nodes.each do |node|
-#  atomic_host node[:name] do
-#    ip_address node[:ip]
-#    master_ip master[:ip]
-#    role :node
-#    action :create
-#  end
-#end
+# node hosts
+nodes.each do |node|
+  atomic_host node[:name] do
+    ip_address node[:ip]
+    master_ip master[:ip]
+    role :node
+    action :create
+  end
+end

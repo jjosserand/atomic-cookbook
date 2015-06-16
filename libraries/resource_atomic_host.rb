@@ -16,6 +16,10 @@ class Chef
       attribute :role,        kind_of: [String, Symbol], default: 'master'
       attribute :master_ip,   kind_of: String, default: nil
       attribute :node_ips,    kind_of: Array, default: []
+
+      attribute :flannel_network,       kind_of: String, default: '172.16.0.0/12'
+      attribute :flannel_subnet_length, kind_of: [Integer, String], default: 24
+      attribute :flannel_backend_type,  kind_of: String, default: 'vxlan'
     end
   end
 end

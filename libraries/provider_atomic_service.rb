@@ -1,5 +1,3 @@
-require 'chef/provider/lwrp_base'
-
 class Chef
   class Provider
     class AtomicService < Chef::Provider::LWRPBase

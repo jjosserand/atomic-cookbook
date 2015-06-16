@@ -158,12 +158,6 @@ class Chef
             notifies :run, "ruby_block[#{ip_address} systemd reload]", :immediately
           end
 
-          atomic_service "#{ip_address} local-registry" do
-            ip_address ip_address
-            unit_name 'local-registry'
-            action [ :enable, :start ]
-          end
-
           atomic_file "#{ip_address} systemd etcd" do
             ip_address ip_address
             remote_file '/etc/systemd/system/etcd.service'
@@ -172,17 +166,11 @@ class Chef
             notifies :run, "ruby_block[#{ip_address} systemd reload]", :immediately
           end
 
-          atomic_service "#{ip_address} etcd" do
-            ip_address ip_address
-            unit_name 'etcd'
-            action [ :enable, :start ]
-          end
-
           atomic_file "#{ip_address} kubernetes config" do
             ip_address ip_address
             remote_file '/etc/kubernetes/config'
             template_name 'kubernetes-config.erb'
-            variables Hash(master_ip_address: ip_address)
+            variables Hash(master_ip_address: ip_address, role: role)
             action :create
             notifies :restart, "atomic_service[#{ip_address} kube-apiserver]"
             notifies :restart, "atomic_service[#{ip_address} kube-controller-manager]"
@@ -207,7 +195,90 @@ class Chef
             notifies :restart, "atomic_service[#{ip_address} kube-controller-manager]"
           end
 
-          %w(kube-apiserver kube-controller-manager kube-scheduler).each do |svc|
+          atomic_directory "#{ip_address} /var/run/kubernetes" do
+            ip_address ip_address
+            path '/var/run/kubernetes'
+            owner 'kube'
+            action :create
+          end
+
+          %w(local-registry etcd kube-apiserver kube-controller-manager kube-scheduler).each do |svc|
+            atomic_service "#{ip_address} #{svc}" do
+              ip_address ip_address
+              unit_name svc
+              action [ :enable, :start ]
+            end
+          end
+
+          flannel_config = {
+            "Network" => new_resource.flannel_network,
+            "SubnetLen" => new_resource.flannel_subnet_length.to_i,
+            "Backend" => { "Type" => new_resource.flannel_backend_type }
+          }
+          flannel_etcd_url = "http://#{ip_address}:4001/v2/keys/atomic01/network/config"
+          http_request "#{ip_address} flannel config" do
+            action :put
+            url flannel_etcd_url
+            message "value=#{URI.escape(flannel_config.to_json)}"
+            not_if "curl -f #{flannel_etcd_url}"
+          end
+        end # role == :master
+
+        if role == :node
+          atomic_file "#{ip_address} docker sysconfig" do
+            ip_address ip_address
+            remote_file '/etc/sysconfig/docker'
+            template_name 'docker-sysconfig.erb'
+            variables Hash(master_ip_address: new_resource.master_ip)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} docker]"
+          end
+
+          atomic_file "#{ip_address} flanneld sysconfig" do
+            ip_address ip_address
+            remote_file '/etc/sysconfig/flanneld'
+            template_name 'flanneld-sysconfig.erb'
+            variables Hash(master_ip_address: new_resource.master_ip)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} flanneld]"
+          end
+
+          atomic_directory "#{ip_address} docker.service.d" do
+            ip_address ip_address
+            path '/etc/systemd/system/docker.service.d'
+            action :create
+          end
+
+          atomic_file "#{ip_address} docker systemd drop-in" do
+            ip_address ip_address
+            remote_file '/etc/systemd/system/docker.service.d/10-flanneld-network.conf'
+            template_name 'systemd-docker.erb'
+            action :create
+            notifies :run, "ruby_block[#{ip_address} systemd reload]", :immediately
+            notifies :restart, "atomic_service[#{ip_address} docker]"
+          end
+
+          atomic_file "#{ip_address} kubernetes config" do
+            ip_address ip_address
+            remote_file '/etc/kubernetes/config'
+            template_name 'kubernetes-config.erb'
+            variables Hash(master_ip_address: new_resource.master_ip)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} kubelet]"
+            notifies :restart, "atomic_service[#{ip_address} kube-proxy]"
+          end
+
+          atomic_file "#{ip_address} kubelet config" do
+            ip_address ip_address
+            remote_file '/etc/kubernetes/kubelet'
+            template_name 'kubernetes-kubelet.erb'
+            variables Hash(node_ip_address: ip_address, master_ip_address: new_resource.master_ip)
+            action :create
+            notifies :restart, "atomic_service[#{ip_address} kubelet]"
+            notifies :restart, "atomic_service[#{ip_address} kube-proxy]"
+          end
+
+          %w(docker flanneld kubelet kube-proxy).each do |svc|
             atomic_service "#{ip_address} #{svc}" do
               ip_address ip_address
               unit_name svc
