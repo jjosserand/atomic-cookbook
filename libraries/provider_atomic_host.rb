@@ -17,7 +17,7 @@ class Chef
 
         ip_address  = new_resource.ip_address
         mac_address = kvm_mac_by_ip(ip_address)
-        role        = new_resource.role.to_s
+        role        = new_resource.role.to_sym
         password    = new_resource.password.nil? ? (0...8).map { (65 + rand(26)).chr }.join : new_resource.password
 
         base_image     = ::File.join(node['atomic']['work_dir'], node['atomic']['image_version']).sub('qcow2.xz', 'qcow2')
@@ -42,7 +42,7 @@ class Chef
           action :create
         end
 
-        remote_file "#{new_resource.node_name} disk file" do
+        remote_file "#{ip_address} disk file" do
           path node_disk_file
           source "file:///#{base_image}"
           action :create_if_missing
@@ -75,7 +75,7 @@ class Chef
           not_if { ::File.exists?(init_iso) }
         end
 
-        execute "#{new_resource.node_name} DHCP reservation" do
+        execute "#{ip_address} DHCP reservation" do
           command %Q{virsh net-update default add ip-dhcp-host '<host mac="#{mac_address}" ip="#{ip_address}"/>' --live --config}
           action :run
           not_if "virsh net-dumpxml default | grep #{ip_address} >/dev/null 2>&1"
@@ -95,23 +95,23 @@ class Chef
         cmd << "--accelerate"
         cmd << "--import"
 
-        execute "#{new_resource.node_name} virt-install" do
+        execute "#{ip_address} virt-install" do
           command cmd.join(' ')
           action :run
           not_if "virsh dumpxml #{new_resource.node_name}"
         end
 
-        ruby_block "#{new_resource.node_name} verify ssh" do
+        ruby_block "#{ip_address} verify ssh" do
           block do
             cmd = Mixlib::ShellOut.new("ssh -i #{atomic_ssh_key} -o ConnectTimeout=2 -o PasswordAuthentication=no root@#{ip_address} uptime")
             succeeded = false
-            10.times do
+            30.times do
               cmd.run_command
               if ! cmd.error?
                 succeeded = true
                 break
               end
-              sleep 5
+              sleep 2
             end
 
             unless succeeded
@@ -121,20 +121,57 @@ class Chef
           action :run
         end
 
+        ruby_block "#{ip_address} systemd reload" do
+          block do
+            run_cmd_on_atomic_host!(ip_address, "systemctl daemon-reload")
+          end
+          action :nothing
+        end
+
         if role == :master
-          atomic_service "#{ip_address} local-registry" do
-            unit_name 'local-registry'
+          docker_cmd = []
+          docker_cmd << "docker create -p 5000:5000"
+          docker_cmd << "-v /var/lib/local-registry:/srv/registry"
+          docker_cmd << "-e STANDALONE=false"
+          docker_cmd << "-e MIRROR_SOURCE=https://registry-1.docker.io"
+          docker_cmd << "-e MIRROR_SOURCE_INDEX=https://index.docker.io"
+          docker_cmd << "-e STORAGE_PATH=/srv/registry"
+          docker_cmd << "--name=local-registry registry"
+          docker_cmd << "&& chcon -Rvt svirt_sandbox_file_t /var/lib/local-registry"
+
+          ruby_block "#{ip_address} create local-registry container" do
+            block do
+              run_cmd_on_atomic_host!(ip_address, docker_cmd.join(' '), timeout_duration=300)
+            end
+            action :run
+            not_if { cmd_on_atomic_host_success?(ip_address, "docker inspect local-registry") }
+          end
+
+          atomic_file "#{ip_address} systemd local-registry" do
             ip_address ip_address
-            identity_file atomic_ssh_key
+            remote_file '/etc/systemd/system/local-registry.service'
             template_name 'systemd-local-registry.erb'
+            action :create
+            notifies :run, "ruby_block[#{ip_address} systemd reload]", :immediately
+          end
+
+          atomic_service "#{ip_address} local-registry" do
+            ip_address ip_address
+            unit_name 'local-registry'
             action [ :enable, :start ]
           end
 
-          atomic_service "#{ip_address} etcd" do
-            unit_name 'etcd'
+          atomic_file "#{ip_address} systemd etcd" do
             ip_address ip_address
-            identity_file atomic_ssh_key
+            remote_file '/etc/systemd/system/etcd.service'
             template_name 'systemd-etcd.erb'
+            action :create
+            notifies :run, "ruby_block[#{ip_address} systemd reload]", :immediately
+          end
+
+          atomic_service "#{ip_address} etcd" do
+            ip_address ip_address
+            unit_name 'etcd'
             action [ :enable, :start ]
           end
         end

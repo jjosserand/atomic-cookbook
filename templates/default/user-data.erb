@@ -6,3 +6,6 @@ ssh_authorized_keys:
 <% @ssh_keys.each do |key| %>
   - <%= key %>
 <% end %>
+runcmd:
+ - cp /home/centos/.ssh/authorized_keys /root/.ssh/authorized_keys
+ - chown root:root /root/.ssh/authorized_keys
