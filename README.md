@@ -4,6 +4,7 @@ The "atomic" cookbook provides Chef resources to create nodes based in Red Hat's
 
 This cookbook has been tested in CentOS 7 and uses KVM/libvirt to create the Atomic hosts.
 
+**NOTE:** This cookbook is a very rough implementation and will likely need changes to work in larger, multi-master production environments.  We look forward to your feedback and pull requests!
 
 ## Supported Platforms
 
