@@ -8,6 +8,7 @@ driver:
   customize:
     cpus: 2
     memory: 8096
+    vhv.enable: "TRUE"
 
 provisioner:
   name: chef_zero

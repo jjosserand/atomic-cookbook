@@ -78,6 +78,11 @@ The following attributes are accepted in the `atomic_host` resource:
  * `flannel_subnet_length`: optional - the size of the subnet to be reserved by the flannel network overlay service from within the `flannel_network` supernet, stated in CIDR bits as an integer.  Defaults to `24` (i.e. a '/24' network)
  * `flannel_backend_type`: optional - backend network device. Defaults to `vxlan`.
 
+## Testing
+
+A `test-atomic` cookbook can be found in test/fixtures/cookbooks which uses the `atomic_host` resource to spin up one master and two nodes.  Because these nodes are virtual machines, if your test environment is also a VM, your test environment must support nested virtualization.
+
+VirtualBox does not support nested virtualization, though it will appear to work and just be incredibly slow.  Therefore, the `.kitchen.yml` file provided with this repository targets using VMware Fusion via Vagrant, and enables nested virtualization via a provider customization.  VMware Fusion, and the Vagrant VMware plugin, are commercial software and are not free.
 
 ## License and Authors
 
