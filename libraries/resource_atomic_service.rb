@@ -1,7 +1,4 @@
 #
-# Cookbook Name:: atomic
-# Recipe:: default
-#
 # Author:: Chef Partner Engineering (<partnereng@chef.io>)
 # Copyright:: Copyright (c) 2015 Chef Software, Inc.
 # License:: Apache License, Version 2.0
@@ -19,4 +16,16 @@
 # limitations under the License.
 #
 
-include_recipe 'atomic::_bootstrap'
+class Chef
+  class Resource
+    class AtomicService < Chef::Resource::LWRPBase
+      self.resource_name = :atomic_service
+      actions :enable, :disable, :start, :stop
+      default_action :enable
+
+      attribute :unit_name,         kind_of: String, required: true
+      attribute :target_ip_address, kind_of: String, required: true
+      attribute :template_name,     kind_of: String
+    end
+  end
+end

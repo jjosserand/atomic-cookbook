@@ -1,35 +1,11 @@
 #cloud-config
-password: <%= @atomic['password'] %>
+password: <%= @password %>
 ssh_pwauth: True
 chpasswd: { expire: False }
-
-<% if !@atomic['ssh_keys'].empty? %>
 ssh_authorized_keys:
-<% @atomic['ssh_keys'].each do |key| %>
+<% @ssh_keys.each do |key| %>
   - <%= key %>
 <% end %>
-<% end %>
-<% if @atomic['role'].to_s == 'master' %>
-write_files:
- - content: |
-      [Unit]
-      Description=Local Docker Mirror registry cache
-      Requires=docker.service
-      After=docker.service
-
-      [Service]
-      Restart=on-failure
-      RestartSec=10
-      ExecStart=/usr/bin/docker start -a %p
-      ExecStop=-/usr/bin/docker stop -t 2 %p
-
-      [Install]
-      WantedBy=multi-user.target
-   path: /etc/systemd/system/local-registry.service
 runcmd:
- - docker create -p 5000:5000 -v /var/lib/local-registry:/srv/registry -e STANDALONE=false -e MIRROR_SOURCE=https://registry-1.docker.io -e MIRROR_SOURCE_INDEX=https://index.docker.io -e STORAGE_PATH=/srv/registry --name=local-registry registry
- - chcon -Rvt svirt_sandbox_file_t /var/lib/local-registry
- - systemctl daemon-reload
- - systemctl enable local-registry
- - systemctl start local-registry
-<% end %>
+ - cp /home/centos/.ssh/authorized_keys /root/.ssh/authorized_keys
+ - chown root:root /root/.ssh/authorized_keys
