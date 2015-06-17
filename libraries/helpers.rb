@@ -17,6 +17,7 @@
 #
 
 require 'mixlib/shellout'
+require 'securerandom'
 
 module AtomicHelpers
   def kvm_mac_by_ip(ip_address)
@@ -99,6 +100,6 @@ module AtomicHelpers
   end
 
   def random_password
-    (0...8).map { (65 + rand(26)).chr }.join
+    SecureRandom.hex(16)
   end
 end

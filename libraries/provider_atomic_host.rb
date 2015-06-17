@@ -34,7 +34,7 @@ class Chef
         ip_address  = new_resource.ip_address
         mac_address = kvm_mac_by_ip(ip_address)
         role        = new_resource.role.to_sym
-        password    = new_resource.password.nil? ? (0...8).map { (65 + rand(26)).chr }.join : new_resource.password
+        password    = new_resource.password.nil? ? random_password : new_resource.password
 
         base_image     = ::File.join(node['atomic']['work_dir'], node['atomic']['image_version']).sub('qcow2.xz', 'qcow2')
         resource_dir   = ::File.join(node['atomic']['work_dir'], ip_address)
