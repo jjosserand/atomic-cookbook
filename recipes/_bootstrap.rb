@@ -21,7 +21,7 @@ compressed_image_file = "#{node['atomic']['work_dir']}/#{node['atomic']['image_v
 image_file = compressed_image_file.sub('qcow2.xz', 'qcow2')
 
 %w(genisoimage libvirt.x86_64 libguestfs-tools qemu-kvm libvirt virt-install
-  bridge-utils vnc xauth virt-manager kubernetes).each do |pkg|
+   bridge-utils vnc xauth virt-manager kubernetes).each do |pkg|
   package pkg do
     action :install
   end
@@ -40,7 +40,7 @@ remote_file compressed_image_file do
   group 'root'
   mode '0755'
   action :create_if_missing
-  not_if { ::File.exists?(image_file) }
+  not_if { ::File.exist?(image_file) }
 end
 
 execute 'uncompress the qcow2 image' do

@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'json'
-describe "cluster status" do
 
+describe 'cluster status' do
   %w(master node1 node2).each do |host|
     it "#{host} host is running" do
-      expect(command("virsh list").stdout).to match(/#{host}\s+running/)
+      expect(command('virsh list').stdout).to match(/#{host}\s+running/)
     end
   end
 

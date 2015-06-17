@@ -62,7 +62,7 @@ end
 execute 'create nginx pod' do
   command 'kubectl create -f /opt/kubernetes/pod-nginx.json -s 192.168.122.50:8080'
   action :run
-  not_if "kubectl get pod nginx-id-01 -s 192.168.122.50:8080"
+  not_if 'kubectl get pod nginx-id-01 -s 192.168.122.50:8080'
 end
 
 template '/opt/kubernetes/service-nginx.json' do
@@ -76,5 +76,5 @@ end
 execute 'create nginx service' do
   command 'kubectl create -f /opt/kubernetes/service-nginx.json -s 192.168.122.50:8080'
   action :run
-  not_if "kubectl get service nginx-service -s 192.168.122.50:8080"
+  not_if 'kubectl get service nginx-service -s 192.168.122.50:8080'
 end

@@ -35,7 +35,7 @@ class Chef
           "chown #{new_resource.owner}:#{new_resource.group} #{new_resource.path}"
         ]
         commands.each do |command|
-          converge_by(%Q{run "#{command}" on #{new_resource.target_ip_address} via ssh}) do
+          converge_by(%Q(run "#{command}" on #{new_resource.target_ip_address} via ssh)) do
             run_cmd_on_atomic_host!(new_resource.target_ip_address, command)
           end
         end

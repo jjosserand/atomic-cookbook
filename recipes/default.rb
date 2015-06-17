@@ -19,5 +19,4 @@
 # limitations under the License.
 #
 
-
 include_recipe 'atomic::_bootstrap'
