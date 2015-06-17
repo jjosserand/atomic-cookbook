@@ -68,9 +68,7 @@ module AtomicHelpers
   end
 
   def file_diff_on_atomic_host?(ip_address, file)
-    if ! file_exists_on_atomic_host?(ip_address, file)
-      return true
-    end
+    return true unless file_exists_on_atomic_host?(ip_address, file)
 
     source_file_md5 = Digest::MD5.file(atomic_file_local_path(ip_address, file))
 
@@ -80,8 +78,7 @@ module AtomicHelpers
     source_file_md5.to_s != dest_file_md5
   end
 
-  def run_cmd_on_atomic_host(ip_address, command, timeout_duration=nil)
-    timeout_duration = timeout_duration.nil? ? 30 : timeout_duration
+  def run_cmd_on_atomic_host(ip_address, command, timeout_duration=30)
     Timeout.timeout(timeout_duration) do
       ssh = Mixlib::ShellOut.new("/bin/ssh -i #{atomic_ssh_key} root@#{ip_address} \"#{command}\"")
       ssh.run_command
@@ -89,12 +86,12 @@ module AtomicHelpers
     end
   end
 
-  def run_cmd_on_atomic_host!(ip_address, command, timeout_duration=nil)
+  def run_cmd_on_atomic_host!(ip_address, command, timeout_duration=30)
     cmd = run_cmd_on_atomic_host(ip_address, command, timeout_duration)
     cmd.error!
   end
 
-  def cmd_on_atomic_host_success?(ip_address, command, timeout_duration=nil)
+  def cmd_on_atomic_host_success?(ip_address, command, timeout_duration=30)
     cmd = run_cmd_on_atomic_host(ip_address, command, timeout_duration)
     ! cmd.error?
   end

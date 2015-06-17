@@ -167,7 +167,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} systemd local-registry" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/systemd/system/local-registry.service'
             template_name 'systemd-local-registry.erb'
             action :create
@@ -175,7 +175,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} systemd etcd" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/systemd/system/etcd.service'
             template_name 'systemd-etcd.erb'
             action :create
@@ -183,7 +183,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} kubernetes config" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/kubernetes/config'
             template_name 'kubernetes-config.erb'
             variables Hash(master_ip_address: ip_address, role: role)
@@ -194,7 +194,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} kubernetes apiserver config" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/kubernetes/apiserver'
             template_name 'kubernetes-apiserver-config.erb'
             variables Hash(master_ip_address: ip_address)
@@ -203,7 +203,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} kubernetes controller-manager config" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/kubernetes/controller-manager'
             template_name 'kubernetes-controller-manager-config.erb'
             variables Hash(node_ip_addresses: new_resource.node_ips)
@@ -212,7 +212,7 @@ class Chef
           end
 
           atomic_directory "#{ip_address} /var/run/kubernetes" do
-            ip_address ip_address
+            target_ip_address ip_address
             path '/var/run/kubernetes'
             owner 'kube'
             action :create
@@ -220,7 +220,7 @@ class Chef
 
           %w(local-registry etcd kube-apiserver kube-controller-manager kube-scheduler).each do |svc|
             atomic_service "#{ip_address} #{svc}" do
-              ip_address ip_address
+              target_ip_address ip_address
               unit_name svc
               action [ :enable, :start ]
             end
@@ -244,7 +244,7 @@ class Chef
           raise RuntimeError, "required attribute 'master_ip' missing for #{new_resource.name}" if new_resource.master_ip.nil?
 
           atomic_file "#{ip_address} docker sysconfig" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/sysconfig/docker'
             template_name 'docker-sysconfig.erb'
             variables Hash(master_ip_address: new_resource.master_ip)
@@ -253,7 +253,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} flanneld sysconfig" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/sysconfig/flanneld'
             template_name 'flanneld-sysconfig.erb'
             variables Hash(master_ip_address: new_resource.master_ip)
@@ -262,13 +262,13 @@ class Chef
           end
 
           atomic_directory "#{ip_address} docker.service.d" do
-            ip_address ip_address
+            target_ip_address ip_address
             path '/etc/systemd/system/docker.service.d'
             action :create
           end
 
           atomic_file "#{ip_address} docker systemd drop-in" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/systemd/system/docker.service.d/10-flanneld-network.conf'
             template_name 'systemd-docker.erb'
             action :create
@@ -277,7 +277,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} kubernetes config" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/kubernetes/config'
             template_name 'kubernetes-config.erb'
             variables Hash(master_ip_address: new_resource.master_ip)
@@ -287,7 +287,7 @@ class Chef
           end
 
           atomic_file "#{ip_address} kubelet config" do
-            ip_address ip_address
+            target_ip_address ip_address
             remote_file '/etc/kubernetes/kubelet'
             template_name 'kubernetes-kubelet.erb'
             variables Hash(node_ip_address: ip_address, master_ip_address: new_resource.master_ip)
@@ -298,7 +298,7 @@ class Chef
 
           %w(docker flanneld kubelet kube-proxy).each do |svc|
             atomic_service "#{ip_address} #{svc}" do
-              ip_address ip_address
+              target_ip_address ip_address
               unit_name svc
               action [ :enable, :start ]
             end

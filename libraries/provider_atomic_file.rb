@@ -30,7 +30,7 @@ class Chef
       include AtomicHelpers
 
       action :create do
-        local_file = atomic_file_local_path(new_resource.ip_address, new_resource.remote_file)
+        local_file = atomic_file_local_path(new_resource.target_ip_address, new_resource.remote_file)
 
         template local_file do
           cookbook 'atomic'
@@ -39,16 +39,16 @@ class Chef
           action :create
         end
 
-        ruby_block "#{new_resource.ip_address} #{new_resource.remote_file} send" do
+        ruby_block "#{new_resource.target_ip_address} #{new_resource.remote_file} send" do
           block do
             scp_to_atomic_host(
-              new_resource.ip_address,
+              new_resource.target_ip_address,
               local_file,
               new_resource.remote_file
             )
           end
           action :run
-          only_if { file_diff_on_atomic_host?(new_resource.ip_address, new_resource.remote_file) }
+          only_if { file_diff_on_atomic_host?(new_resource.target_ip_address, new_resource.remote_file) }
         end
       end
     end

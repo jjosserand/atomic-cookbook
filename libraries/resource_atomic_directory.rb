@@ -25,10 +25,10 @@ class Chef
 
       provides :atomic_directory
 
-      attribute :ip_address, kind_of: String, required: true
-      attribute :path,       kind_of: String, required: true
-      attribute :owner,      kind_of: String, default: 'root'
-      attribute :group,      kind_of: String, default: 'root'
+      attribute :target_ip_address, kind_of: String, required: true
+      attribute :path,              kind_of: String, required: true
+      attribute :owner,             kind_of: String, default: 'root'
+      attribute :group,             kind_of: String, default: 'root'
     end
   end
 end

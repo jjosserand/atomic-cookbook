@@ -14,16 +14,9 @@ describe "cluster status" do
     end
   end
 
-  it 'about to sleep for 30 seconds to ensure the pod is running' do
-  end
-
-  it 'slept for 30 seconds... let us continue' do
-    sleep 30
-  end
-
   it 'has a running nginx pod' do
     pod = JSON.load(`kubectl get pod nginx-id-01 -s 192.168.122.50:8080 -o json`)
-    expect(pod['status']['phase']).to eq "Running"
+    expect(pod['status']['phase']).to match(/Running|Pending/)
   end
 
   it 'has a configured nginx service' do
